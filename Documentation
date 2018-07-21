@@ -1,0 +1,109 @@
+
+ 
+Objective
+	Our Objective is to create a web page on health insurance implemented with blockchain and IOT which we presume to be a milestone in insurance sector.
+
+Technology we Use
+	Blockchain
+A blockchain is a continuously growing list of records, called blocks, which are linked and secured using cryptography. Each block typically contains a cryptographic hash of the previous block, a timestamp, and transaction data. By design, a blockchain is resistant to modification of the data. Once recorded, the data in any given block cannot be altered retroactively without alteration of all subsequent blocks, which requires consensus of the network majority.
+		By design, the blockchain is a decentralized technology.Anything that happens on it is a function of the network as a whole. Decentralization means the network operates on a user-to-user (or peer-to-peer) basis. The forms of mass collaboration this makes possible are just beginning to be investigated.
+		
+ 
+	IOT
+                                          The Internet of Things (IoT) is the network of physical devices, vehicles, home appliances, and other items embedded with electronics, software, sensors, actuators, and connectivity which enables these things to connect and exchange data,  creating opportunities for more direct integration of the physical world into computer-based systems, resulting in efficiency improvements, economic benefits, and reduced human exertions.
+Fitbit
+			FitBit's software relies on special algorithms to convert raw accelerometer data into usable information. Those algorithms are the secret sauce that the company has worked diligently to tweak and improve, by experimenting and comparing FitBit's accuracy with other test machines.
+ 
+
+PROBLEM STATEMENT
+
+	Medical histories and records can be stored in a secure chain that patients have full control over. If a primary care physician needs to see a diagnosis the patient received from a specialist, it can be viewed as soon as the patient provides authorization.
+
+	Payments between banks, government entities, providers and patients can all be coordinated in a fraction of the time and without costly intermediaries.
+
+	Healthcare equipment usage, depreciation and lifecycles can be automatically tracked in a chain to keep better tabs on the status of expensive and fragile fixtures.
+
+USE CASE:-WE BELIEVE THAT BLOCKCHAINCOULD HAVE POSITIVE IMPACT ON THESE AREAS.
+1  MICROINSURANCE
+ 2  GENERAL HEALTH PREMIUM
+  3 CLAIM PROCESSING
+  4 HEALTH RECORDS
+Our project is based on these four services. We are trying to implement these services on a web page.
+1.	Use Case Description   
+Abstract
+The new wallet possess the features(smart contract) such as
+	  provide the user interface ,that only accessible for the person who had taken insurance(like nominee we can set a person ,most probably family member for using wallet at urgent condition)
+	 Use Biometrics method for identifying the person(avoid photo validation problems).
+	Avoid third party influence.
+MICROINSURANCE
+	All type of micro insurance based on health are available for eg: dengue insurance. 
+	smart contracts are made for each micro insurance for issue as well as claim processing
+
+
+
+GENERAL HEALTH INSURANCE
+	smart contracts are made for general insurance for issue as well as claim processing
+	In order to take a new premium or for raising a claim, user should satisfy the necessary conditions in the smart contract 
+	Premiums are calculated based on the risk factors that can be analyzed from these smart contract
+
+HEALTH RECORDS
+	User could track their current health related data from IOT devices like fit bit and other smart wearables
+	Also, various health check up points can be easily set up that could easily get user's health status like sugar, cholesterol, pressure levels etc.
+	Users could consult a doctor easily and make appointments by their needs. Users also get a chance to grade their doctors
+	All these data are stored in a distributed ledger called data lake whose location can be accessed by Block chain
+CLAIM
+	The unique id of interacting smart contract with IOT enables the blockchain to automatically approve/reject claim based on the records.
+1.	Impacts
+1.1	Micro insurance
+	User can get insured for each part of his body that he thinks to be most vulnerable
+	Blockchain ensures confidentiality of his insurance details.
+1.2	General Premium
+	Premium is paid through the concept of wallet called smart contract which enables the user to know the flow of money paid by him.
+	Also, based on the risk factor, user can avail reduction in his premium.
+1.3	Claims
+	Once a claim is made by the customer, the blockchain can automatically approve/reject claim based on the data given.
+	This reduces the waiting time for claim processing.1.4 Health Records
+	Block chain maintains a clear health record collected throughout his lifetime.
+	These are collected from personal devices and sensors, which is encrypted and digitally signed and passed through blockchain.
+	These data are stored in a data lake, whose location is stored in each blockchain transaction.
+a.	Scope   
+•     Move money from a real account to a digital wallet account
+•     Make payments out of the wallet to payment systems
+•     Pay several people at once
+•      Query balances
+•      Detect transaction errors
+•      Obfuscate (i.e. secure) the history of transactions 
+•	If user doesn’t claim their insurance they will get fraction of their premium in return, this will attract more number of customer.
+•	As whole process is over blockchain it will be easier to manage.
+•	User will always be updated with the current status of the insurance.
+2.	Architecture 
+Sensor-equipped devices like fitness wearables can measure a person’s activity, diet, and vital signs. This can help health insurance companies assess and predict health, which potentially means fewer customer ailments  and fewer claims.
+ 3. Wireframes 
+ 
+ 
+
+ 
+3.	Tools and Environment
+Hyperledger Composer
+Hyperledger IOT 
+Node.js
+Visual Studio
+Web3.JS
+React.JS
+a.	Simulation 
+AUTOCAD	
+ILLUSTRATOR
+POWERPOINT
+b.	Cloud
+GITHUB
+IBM WATSON 
+DOCKER
+
+c.	Physical
+FITBIT
+4.	References : 
+Farmatrust
+	Healthureum
+	Medical Chain
+	Synthium Health
+
