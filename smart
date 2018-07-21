@@ -1,0 +1,474 @@
+package main
+
+
+funclistContractTypes(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	callingAsCustomer := len(args) == 1
+	input := struct {
+		InsuranceType string `json:"Insurance_type"`
+	}{}
+	ifcallingAsCustomer {
+		err := json.Unmarshal([]byte(args[0]), &input)
+		if err != nil {
+			returnshim.Error(err.Error())
+		}
+	}
+
+	resultsIterator, err := stub.GetStateByPartialCompositeKey(prefixContractType, []string{})
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+	deferresultsIterator.Close()
+
+	results := []interface{}{}
+	forresultsIterator.HasNext() {
+		kvResult, err := resultsIterator.Next()
+		if err != nil {
+			returnshim.Error(err.Error())
+		}
+
+		ct := struct {
+			UUID string `json:"uuid"`
+			*contractType
+		}{}
+		err = json.Unmarshal(kvResult.Value, &ct)
+		if err != nil {
+			returnshim.Error(err.Error())
+		}
+		prefix, keyParts, err := stub.SplitCompositeKey(kvResult.Key)
+		if err != nil {
+			returnshim.Error(err.Error())
+		}
+		iflen(keyParts) > 0 {
+			ct.UUID = keyParts[0]
+		} else {
+			ct.UUID = prefix
+		}
+
+		// Apply proper filtering, Customers should only see active contracts
+		if !callingAsCustomer ||
+			(strings.Contains(strings.ToTitle(ct.InsuranceType), strings.ToTitle(input.InsuranceType)) &&ct.Active) {
+			results = append(results, ct)
+		}
+	}
+
+	returnBytes, err := json.Marshal(results)
+	returnshim.Success(returnBytes)
+}
+
+funccreateContractType(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	iflen(args) != 1 {
+		returnshim.Error("Invalid argument count.")
+	}
+
+	partial := struct {
+		UUID string `json:"uuid"`
+	}{}
+	ct := contractType{}
+
+	err := json.Unmarshal([]byte(args[0]), &partial)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+
+	err = json.Unmarshal([]byte(args[0]), &ct)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+
+	key, err := stub.CreateCompositeKey(prefixContractType, []string{partial.UUID})
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+
+	value, err := json.Marshal(ct)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+
+	err = stub.PutState(key, value)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+
+	returnshim.Success(nil)
+}
+
+funcsetActiveContractType(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	iflen(args) != 1 {
+		returnshim.Error("Invalid argument count.")
+	}
+
+	req := struct {
+		UUID   string `json:"uuid"`
+		Active bool   `json:"active"`
+	}{}
+	ct := contractType{}
+
+	err := json.Unmarshal([]byte(args[0]), &req)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+
+	key, err := stub.CreateCompositeKey(prefixContractType, []string{req.UUID})
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+
+	valAsBytes, err := stub.GetState(key)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+	iflen(valAsBytes) == 0 {
+		returnshim.Error("Contract Type could not be found")
+	}
+	err = json.Unmarshal(valAsBytes, &ct)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+
+	ct.Active = req.Active
+
+	valAsBytes, err = json.Marshal(ct)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+
+	err = stub.PutState(key, valAsBytes)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+
+	returnshim.Success(nil)
+}
+
+funclistContracts(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	input := struct {
+		Username string `json:"username"`
+	}{}
+	iflen(args) == 1 {
+		err := json.Unmarshal([]byte(args[0]), &input)
+		if err != nil {
+			returnshim.Error(err.Error())
+		}
+	}
+	filterByUsername := len(input.Username) > 0
+
+	varresultsIteratorshim.StateQueryIteratorInterface
+	var err error
+	// Filtering by username if required
+	iffilterByUsername {
+		resultsIterator, err = stub.GetStateByPartialCompositeKey(prefixContract, []string{input.Username})
+	} else {
+		resultsIterator, err = stub.GetStateByPartialCompositeKey(prefixContract, []string{})
+	}
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+	deferresultsIterator.Close()
+
+	results := []interface{}{}
+	// Iterate over the results
+	forresultsIterator.HasNext() {
+		kvResult, err := resultsIterator.Next()
+		if err != nil {
+			returnshim.Error(err.Error())
+		}
+
+		// Construct response struct
+		result := struct {
+			UUID string `json:"uuid"`
+			*contract
+			Claims []claim `json:"claims,omitempty"`
+		}{}
+
+		err = json.Unmarshal(kvResult.Value, &result)
+		if err != nil {
+			returnshim.Error(err.Error())
+		}
+
+		// Fetch key
+		prefix, keyParts, err := stub.SplitCompositeKey(kvResult.Key)
+		iflen(keyParts) == 2 {
+			result.UUID = keyParts[1]
+		} else {
+			result.UUID = prefix
+		}
+
+		// Fetch the claims, if the the username parameter is specified
+		iflen(input.Username) > 0 {
+			result.Claims, err = result.contract.Claims(stub)
+			if err != nil {
+				returnshim.Error(err.Error())
+			}
+		}
+		result.ClaimIndex = []string{} // Remove internal data
+		results = append(results, result)
+	}
+
+	resultsAsBytes, err := json.Marshal(results)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+	returnshim.Success(resultsAsBytes)
+}
+
+funclistClaims(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	var status ClaimStatus
+	iflen(args) > 0 {
+		input := struct {
+			Status ClaimStatus `json:"status"`
+		}{}
+		err := json.Unmarshal([]byte(args[0]), &input)
+		if err != nil {
+			returnshim.Error(err.Error())
+		}
+		status = input.Status
+	}
+
+	results := []interface{}{}
+	resultsIterator, err := stub.GetStateByPartialCompositeKey(prefixClaim, []string{})
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+	deferresultsIterator.Close()
+
+	forresultsIterator.HasNext() {
+		kvResult, err := resultsIterator.Next()
+		if err != nil {
+			returnshim.Error(err.Error())
+		}
+
+		result := struct {
+			UUID string `json:"uuid"`
+			*claim
+		}{}
+		err = json.Unmarshal(kvResult.Value, &result)
+		if err != nil {
+			returnshim.Error(err.Error())
+		}
+
+		// Skip the processing of the result, if the status
+		// does not equal the query status; list all, if unknown
+		ifresult.Status != status && status != ClaimStatusUnknown {
+			continue
+		}
+
+		// Fetch key
+		prefix, keyParts, err := stub.SplitCompositeKey(kvResult.Key)
+		iflen(keyParts) < 2 {
+			result.UUID = prefix
+		} else {
+			result.UUID = keyParts[1]
+		}
+
+		results = append(results, result)
+	}
+
+	claimsAsBytes, err := json.Marshal(results)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+	returnshim.Success(claimsAsBytes)
+}
+
+funcfileClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	iflen(args) != 1 {
+		returnshim.Error("Invalid argument count.")
+	}
+
+	dto := struct {
+		UUID         string    `json:"uuid"`
+		ContractUUID string    `json:"contract_uuid"`
+		Date         time.Time `json:"date"`
+		Description  string    `json:"description"`
+		IsIllbool      `json:"is_ill"`
+	}{}
+	err := json.Unmarshal([]byte(args[0]), &dto)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+
+	claim := claim{
+		ContractUUID: dto.ContractUUID,
+		Date:         dto.Date,
+		Description:  dto.Description,
+		IsIll:      dto.IsIll,
+		Status:       ClaimStatusNew,
+	}
+
+	// Check if the contract exists
+	contract, err := claim.Contract(stub)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+	if contract == nil {
+		returnshim.Error("Contract could not be found.")
+	}
+
+	// Persist the claim
+	claimKey, err := stub.CreateCompositeKey(prefixClaim,
+		[]string{dto.ContractUUID, dto.UUID})
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+	claimBytes, err := json.Marshal(claim)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+
+	err = stub.PutState(claimKey, claimBytes)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+
+	// Update the claim index in the contract
+	contract.ClaimIndex = append(contract.ClaimIndex, claimKey)
+	contractKey, err := stub.CreateCompositeKey(prefixContract,
+		[]string{contract.Username, claim.ContractUUID})
+
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+	contractBytes, err := json.Marshal(contract)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+	stub.PutState(contractKey, contractBytes)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+
+	returnshim.Success(nil)
+}
+
+funcprocessClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	iflen(args) != 1 {
+		returnshim.Error("Invalid argument count.")
+	}
+
+	input := struct {
+		UUID         string      `json:"uuid"`
+		ContractUUID string      `json:"contract_uuid"`
+		Status       ClaimStatus `json:"status"`
+		Reimbursable float32     `json:"reimbursable"`
+	}{}
+	err := json.Unmarshal([]byte(args[0]), &input)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+
+	claimKey, err := stub.CreateCompositeKey(prefixClaim, []string{input.ContractUUID, input.UUID})
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+
+	claimBytes, _ := stub.GetState(claimKey)
+	iflen(claimBytes) == 0 {
+		returnshim.Error("Claim cannot be found.")
+	}
+
+	claim := claim{}
+	err = json.Unmarshal(claimBytes, &claim)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+
+	if !claim.IsIll&&claim.Status != ClaimStatusNew {
+		// Check if altering claim is allowed
+		returnshim.Error("Cannot change the status of a non-new claim.")
+	}
+	ifclaim.IsIll&&claim.Status == ClaimStatusNew {
+		returnshim.Error("Ill must first be confirmed by hospital.")
+	}
+
+
+	caseClaimStatusRejected:
+		// Mark as rejected
+	default:
+		returnshim.Error("Unknown status change.")
+	}
+
+	// Persist claim
+	claimBytes, err = json.Marshal(claim)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+	err = stub.PutState(claimKey, claimBytes)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+
+	returnshim.Success(nil)
+}
+
+funcauthUser(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	iflen(args) != 1 {
+		returnshim.Error("Invalid argument count.")
+	}
+
+	input := struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}{}
+
+	authenticated := false
+
+	err := json.Unmarshal([]byte(args[0]), &input)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+
+	userKey, err := stub.CreateCompositeKey(prefixUser, []string{input.Username})
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+	userBytes, _ := stub.GetState(userKey)
+	iflen(userBytes) == 0 {
+		authenticated = false
+	} else {
+		user := user{}
+		err := json.Unmarshal(userBytes, &user)
+		if err != nil {
+			returnshim.Error(err.Error())
+		}
+		authenticated = user.Password == input.Password
+	}
+
+	authBytes, _ := json.Marshal(authenticated)
+	returnshim.Success(authBytes)
+}
+
+funcgetUser(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	iflen(args) != 1 {
+		returnshim.Error("Invalid argument count.")
+	}
+
+	input := struct {
+		Username string `json:"username"`
+	}{}
+
+	userKey, err := stub.CreateCompositeKey(prefixUser, []string{input.Username})
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+	userBytes, _ := stub.GetState(userKey)
+	iflen(userBytes) == 0 {
+		returnshim.Success(nil)
+	}
+
+	response := struct {
+		Username  string `json:"username"`
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+	}{}
+	err = json.Unmarshal(userBytes, &response)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+	responseBytes, err := json.Marshal(response)
+	if err != nil {
+		returnshim.Error(err.Error())
+	}
+	returnshim.Success(responseBytes)
+}
+
