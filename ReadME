@@ -1,0 +1,54 @@
+Build Blockchain Insurance Application
+
+		This project showcases the use of blockchain in insurance domain for claim processing. In this application, we have two participants, namely insurance andhospital. Insurance peer is the insurance company providing the insurance for the products and it is responsible for processing the claims. Hospital peer is responsible for verifying the treatment claims. 
+		JavaScript is used for creating the front end,i.e, the web page.
+
+Included Components
+* Hyperledger Fabric
+* Docker
+* JavaScript
+
+
+Application Workflow Diagram
+
+* Generate Certificates for peers
+* Build Docker images for network
+* Start the insurance network
+
+
+
+
+
+
+
+Procedure
+
+		Once the Customer has submitted the claim it will be shown in the box marked in red. Furthermore, another block is being written to the chain.
+
+Claim Block
+		The Customer can also view the active claims.
+
+Active Claims		
+		By selecting “claim processing” the Insurance company can view all active claims that have not been processed yet. A clerk can decide on the claims in this view. Since we are still looking at option 1 the treatment has to be confirmed or denied by the hospital. Therefore, the insurance company can only reject the claim at this point in stage.
+
+Claim Processing								
+		The Hospital Peer can view the claims that include treatment. In case the patient has been reported ill they can confirm the claim and include a file reference number. In case no treatment has been reported they can reject the claim and it will not be processed.
+
+
+Hospital Peer
+		Let’s assume the Customer did not rip-off the insurance company and has reported him as ill. The hospital will confirm the claim which results in another Block being written to the chain.
+
+Hospital Transaction
+		Going back to the “claim processing” tab you can see that the insurance company has the option to reimburse the claim now because the hospital had confirmed that the patient has been ill. Block is being written to the chain
+
+Claim Processing
+		The Customer can see the new status of his claim which changed to reimbursed.
+
+User login
+
+Additional resources
+Following is a list of additional blockchain resources:
+* Fundamentals of IBM Blockchain
+* Hyperledger Fabric Documentation
+* Hyperledger Fabric code on GitHub
+
